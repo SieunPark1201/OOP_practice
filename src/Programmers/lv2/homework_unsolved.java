@@ -9,7 +9,7 @@ public class homework_unsolved {
 
 
         String[][] plans = {
-                {"science", "12:40", "50"}, {"music", "12:20", "40"}, {"history", "14:00", "30"}, {"computer", "12:30", "100"}
+                {"aaa", "12:00", "20"}, {"bbb", "12:10", "30"}, {"ccc", "12:40", "10"}
         };
 
         String[] solve = solution(plans);
@@ -25,18 +25,18 @@ public class homework_unsolved {
 
         String[] answer = new String[plans.length];
 
+        String[][] sortedPlans = Arrays.copyOf(plans, plans.length);
+
 
         // 계산을 위해 시각을 시간으로 변환하기. (원본 값은 변하지 않게 새 배열 생성)
         int[] time = new int[plans.length];
 
-        for (int i = 0; i < plans.length; i++){
+        for (int i = 0; i < sortedPlans.length; i++){
 
-            time[i] = Integer.parseInt(plans[i][1].split(":")[0]) * 60
-                    + Integer.parseInt(plans[i][1].split(":")[1]);
+            time[i] = Integer.parseInt(sortedPlans[i][1].split(":")[0]) * 60
+                    + Integer.parseInt(sortedPlans[i][1].split(":")[1]);
         }
 
-
-        String[][] sortedPlans = Arrays.copyOf(plans, plans.length);
 
 
         // 먼저 시간 순으로 정렬해주기.
@@ -47,8 +47,11 @@ public class homework_unsolved {
                     time[i] = time[j];
                     time[j] = temp;
 
-                    sortedPlans[i] = plans[j].clone();
-                    sortedPlans[j] = plans[i].clone();
+                    for (int k = 0; k < plans[i].length; k++) {
+                        String tempValue = sortedPlans[i][k];
+                        sortedPlans[i][k] = sortedPlans[j][k];
+                        sortedPlans[j][k] = tempValue;
+                    }
                 }
             }
         }
@@ -63,24 +66,21 @@ public class homework_unsolved {
 //        }
 
 
-        // 계산을 위해 시각을 시간-처음시간 = 소요시간 으로 변환하기. (원본 값은 변하지 않게 새 배열 생성)
-
-
-        int initialTime = Integer.parseInt(sortedPlans[0][1].split(":")[0]) * 60
-                                + Integer.parseInt(sortedPlans[0][1].split(":")[1]);
+        // 계산을 위해 시각을 시간-이전시간 = 소요시간 으로 변환하기. (원본 값은 변하지 않게 새 배열 생성)
 
         for (int i = 0; i < sortedPlans.length-1; i++){
 
             time[i] = Integer.parseInt(sortedPlans[i+1][1].split(":")[0]) * 60
                                 + Integer.parseInt(sortedPlans[i+1][1].split(":")[1])
-                                - initialTime;
+                                - Integer.parseInt(sortedPlans[i][1].split(":")[0]) * 60
+                                    - Integer.parseInt(sortedPlans[i][1].split(":")[1]);;
         }
         time[sortedPlans.length-1] = 100 * sortedPlans.length;
 
 
 
-////        잘 진행되었는지 확인
-//
+//        잘 진행되었는지 확인
+
 //        for (int i = 0; i < plans.length; i++){
 //            System.out.println(time[i]);
 //        }
@@ -97,7 +97,7 @@ public class homework_unsolved {
                     // 두번쨰 이상이라면
                         // 앞의 과제를 모두 완료했다면 break;
                         // 완료하지 않은 과제가 있다면; time을 i까지 for문 돌려서 time[j] < 0 이라면
-                        // 남은 시간동안 해당 과제 풀기; while (time[i] != 0)
+                        // 남은 시간동안 해당 과제 풀기
                                 // if time[i] < -time[j]
                                 // time[j] += time[i]
                                 // time[i] = 0
@@ -127,60 +127,47 @@ public class homework_unsolved {
 
         int num = 0;
 
+        for (int i = 0; i < sortedPlans.length-1; i++) {
 
-            for (int i = 0; i < sortedPlans.length - 1; i++) {
+            if (Integer.parseInt(sortedPlans[i][2]) < time[i]) {
+                answer[num] = sortedPlans[i][0];
+                num++;
+                time[i] -= Integer.parseInt(sortedPlans[i][2]);
 
-                if (Integer.parseInt(sortedPlans[i][2]) < time[i]) {
-                    answer[num] = sortedPlans[i][0];
-                    num++;
-                    time[i] -= Integer.parseInt(sortedPlans[i][2]);
+                for (int j = i-1; j >= 0; j--) {
+                    if (time[j] < 0) {
+                        if (time[i] < -time[j]) {
+                            time[j] += time[i];
+                            time[i] = 0;
+                            break;
+                        } else if (time[i] == -time[j]) {
+                            time[i] = 0;
+                            time[j] = 0;
+                            answer[num] = sortedPlans[j][0];
+                            num++;
+                            break;
+                        } else if (time[i] > -time[j]) {
+                            time[i] += time[j];
+                            time[j] = 0;
+                            answer[num] = sortedPlans[j][0];
+                            num++;
 
-                    while (time[i] != 0) {
-                        boolean progress = false;  // 과제를 진행했는지 여부를 나타내는 플래그
-
-                        for (int j = 0; j < i; j++) {
-                            if (time[j] < 0) {
-                                if (time[i] < -time[j]) {
-                                    time[j] += time[i];
-                                    time[i] = 0;
-                                } else if (time[i] == -time[j]) {
-                                    time[i] = 0;
-                                    time[j] = 0;
-                                    answer[num] = sortedPlans[j][0];
-                                    num++;
-                                    progress = true;
-                                    break;  // 과제를 진행했으므로 for 루프 종료
-                                } else if (time[i] > -time[j]) {
-                                    time[i] += time[j];
-                                    time[j] = 0;
-                                    answer[num] = sortedPlans[j][0];
-                                    num++;
-                                    progress = true;
-                                    break;  // 과제를 진행했으므로 for 루프 종료
-                                }
-                            }
-                        }
-
-                        if (!progress) {
-                            break;  // 더 이상 진행할 과제가 없으면 while 루프 종료
                         }
                     }
-
-                } else if (Integer.parseInt(sortedPlans[i][2]) == time[i]) {
-                    time[i] = 0;
-                    answer[num] = sortedPlans[i][0];
-                    num++;
-                } else if (Integer.parseInt(sortedPlans[i][2]) > time[i]) {
-                    time[i] -= Integer.parseInt(sortedPlans[i][2]);
                 }
+            } else if (Integer.parseInt(sortedPlans[i][2]) == time[i]) {
+                time[i] = 0;
+                answer[num] = sortedPlans[i][0];
+                num++;
+            } else if (Integer.parseInt(sortedPlans[i][2]) > time[i]) {
+                time[i] -= Integer.parseInt(sortedPlans[i][2]);
             }
-
-
+        }
 
         // 마지막 시간
-        for (int i = 0 ; i < sortedPlans.length; i++) {
-            if (time[i] < 0){
-                if (num > sortedPlans.length){
+        for (int i = sortedPlans.length -1; i >= 0 ; i--) {
+            if (time[i] != 0) {
+                if (num >= sortedPlans.length) {
                     break;
                 }
                 answer[num] = sortedPlans[i][0];
@@ -188,9 +175,7 @@ public class homework_unsolved {
             }
         }
 
-        if ( answer[sortedPlans.length-1] == null ){
-            answer[sortedPlans.length-1] = sortedPlans[sortedPlans.length-1][0];
-        }
+
 
         return answer;
     }
