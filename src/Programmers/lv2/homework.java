@@ -2,7 +2,7 @@ package Programmers.lv2;
 
 import java.util.Arrays;
 
-public class homework_unsolved {
+public class homework {
 
     public static void main(String[] args) {
 
